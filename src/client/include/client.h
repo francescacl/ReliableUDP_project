@@ -15,7 +15,11 @@
 #define SERV_PORT	5193
 #define BACKLOG		10
 #define MAXLINE		1024
+#define DEST_PATH "files/output/"
 
 void error(const char *msg);
+size_t fileSize(char *filename);
+char* filePath(char *fpath, char *fname);
+int wait_recv(char *buff, long size, int sockfd);
 
 #endif // CLIENT_H

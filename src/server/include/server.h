@@ -16,8 +16,11 @@
 
 #define SERV_PORT	5193
 #define BACKLOG		10
-#define MAXLINE		1024
+#define MAXLINE		2048
+#define FILENAME_PATH "files/input/"
 
 void error(const char *msg);
+size_t fileSize(char *filename);
+char* filePath(char *fpath, char *fname);
 
 #endif // SERVER_H
