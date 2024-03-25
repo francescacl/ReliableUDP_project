@@ -14,13 +14,25 @@
 
 #include <time.h>
 
-#define SERV_PORT	5193
-#define BACKLOG		10
-#define MAXLINE		2048
+#define SERV_PORT	   5193
+#define BACKLOG		   10
+#define MAXLINE		   2048
 #define FILENAME_PATH "files/input/"
 
+// Functions
 void error(const char *msg);
 size_t fileSize(char *filename);
 char* filePath(char *fpath, char *fname);
+int recv_rel();
+int send_rel();
+void create_conn();
+
+// Variables
+int sockfd;
+socklen_t len;
+struct sockaddr_in addr;
+char buff[MAXLINE];
+FILE *file;
+size_t bytes_read;
 
 #endif // SERVER_H

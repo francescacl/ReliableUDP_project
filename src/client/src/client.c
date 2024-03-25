@@ -58,67 +58,95 @@ int wait_recv(char *buff, long size, int sockfd) {
   return -1;
 }
 
-
-
-int main(int argc, char *argv[]) {
-
-  int   sockfd, n;
-  struct    sockaddr_in   servaddr;
-  FILE *file;
-  const long size = 174647;
-  //const long size = 182;
-  char recvline[size + 1];
-
+void check_args(int argc) {
   if (argc != 2) { /* controlla numero degli argomenti */
+    printf("argc: %d\n",argc);
     fprintf(stderr, "utilizzo: daytime_clientUDP <indirizzo IP server>\n");
     exit(1);
   }
+  return;
+}
+
+void create_conn(char *ip_address) {
 
   if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) { /* crea il socket */
-    error("errore in socket");
+    error("Error in socket");
   }
-
   
   memset(&servaddr, 0, sizeof(servaddr));      /* azzera servaddr */
   servaddr.sin_family = AF_INET;       /* assegna il tipo di indirizzo */
   servaddr.sin_port = htons(SERV_PORT);  /* assegna la porta del server */
   /* assegna l'indirizzo del server prendendolo dalla riga di comando. L'indirizzo è una stringa da convertire in intero secondo network byte order. */
-  if (inet_pton(AF_INET, argv[1], &servaddr.sin_addr) <= 0) { /* inet_pton (p=presentation) vale anche per indirizzi IPv6 */
-    fprintf(stderr, "errore in inet_pton per %s", argv[1]);
+  if (inet_pton(AF_INET, ip_address, &servaddr.sin_addr) <= 0) { /* inet_pton (p=presentation) vale anche per indirizzi IPv6 */
+    fprintf(stderr, "Error in inet_pton for %s", ip_address);
     exit(1);
   }
 
+  return;
+
+}
+
+int send_rel() {
+
   /* Invia al server il pacchetto di richiesta*/
-  //if (sendto(sockfd, NULL, 0, 0, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
   if (sendto(sockfd, NULL, 0, 0, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
-    error("errore in sendto");
+    error("Error in sendto");
   }
+  return 0;
 
-  /* Legge dal socket il pacchetto di risposta */
-  n = wait_recv(recvline, size, sockfd);
-  if (n < 0) {
-    error("errore in recvfrom");
-  }
-  if (n > 0) {
-    recvline[n] = '\0';        /* aggiunge il carattere di terminazione */
+}
 
-    char *name = "Oscar.jpg";
-    //char *name = "Poe.txt";
-    char *path = filePath(DEST_PATH, name);
-    file = fopen(path, "wb");
+int recv_rel() {
+  return 0;
+
+}
+
+
+int main(int argc, char *argv[]) {
+
+  // TODO
+  const long size = 174647;
+  //const long size = 182;
+  char recvline[size + 1];
+
+  check_args(argc);
+
+  create_conn(argv[1]);
+  printf("Connection established\n");
+  fflush(stdout);
+
+  send_rel();
+  printf("Request sent\n");
+  fflush(stdout);
+
+  
+  /*-------------------*/
+
+  // Ricezione del nome del file dal server
+    // Ricezione dei dati dal server
+    n = wait_recv(recvline, size, sockfd);
+
+    if (n < 0) {
+        error("Error in recvfrom");
+    } else {
+      recvline[n] = '\0';        // aggiunge il carattere di terminazione
+
+      char *name = "Oscar.jpg";
+      //char *name = "Poe.txt";
+      char *path = filePath(DEST_PATH, name);
+      FILE *file = fopen(path, "wb"); // Apertura del file in modalità binaria
       if (file == NULL) {
-        error("errore nell'apertura del file di destinazione");
+        error("Error in destination file opening");
       }
-
-      // Scrivi i dati ricevuti nel file
+      // Scrittura dei dati nel file
       if (fwrite(recvline, 1, n, file) != n) {
-        error("errore nella scrittura del file");
+        error("Error in file writing");
       }
+      fclose(file); // Chiusura del file
+      printf("File saved successfully in: %s\n", path);
+    }
 
-      fclose(file); // Chiudi il file
-
-      printf("File salvato con successo in: %s\n", path);
-  }
+    close(sockfd); // Chiusura del socket
 
   exit(0);
 }

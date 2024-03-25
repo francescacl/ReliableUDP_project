@@ -36,18 +36,27 @@ char* filePath(char *fpath, char *fname) {
 }
 
 
-int main(int argc, char **argv) {
-  
-  int sockfd;
-  socklen_t len=sizeof(struct sockaddr_in);
-  struct sockaddr_in addr;
-  char buff[MAXLINE];
-  FILE *file;
-  size_t bytes_read;
+int recv_rel() {
 
-  if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) { /* crea il socket */
-    error("errore in socket");
+  return recvfrom(sockfd, buff, MAXLINE, 0, (struct sockaddr *)&addr, &len);
+}
+
+
+int send_rel() {
+
+  return sendto(sockfd, buff, bytes_read, 0, (struct sockaddr *)&addr, sizeof(addr));
+}
+
+
+void create_conn() {
+
+  len=sizeof(struct sockaddr_in);
+
+  if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) { /* crea la socket */
+    error("Error in socket");
   }
+  printf("Socket created\n");
+  fflush(stdout);
 
   memset((void *)&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
@@ -58,12 +67,30 @@ int main(int argc, char **argv) {
   if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
     error("errore in bind");
   }
+  printf("Socket binded\n");
+  fflush(stdout);
+}
+
+
+int main(int argc, char **argv) {
+
+  create_conn();
 
   while (1) {
     
-    if ( (recvfrom(sockfd, buff, MAXLINE, 0, (struct sockaddr *)&addr, &len)) < 0) {
-      error("errore in recvfrom");
+    printf("Waiting for request...\n");
+    fflush(stdout);
+    
+    if (recv_rel() < 0) {
+      error("Error in recvfrom");
     }
+    printf("Request received\n");
+    fflush(stdout);
+
+    //
+
+    printf("Sending image\n");
+    fflush(stdout);
 
     char *name = "Oscar.jpg";
     //char *name = "Poe.txt";
@@ -71,17 +98,21 @@ int main(int argc, char **argv) {
     file = fopen(FILENAME, "rb");
 
     if (file == NULL) {
-        error("errore nell'apertura del file");
+      error("Error in file opening");
     }
 
     size_t size = fileSize(FILENAME);
 
     while ((bytes_read = fread(buff, 1, MAXLINE, file)) > 0) {
-      if (sendto(sockfd, buff, bytes_read, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-        error("errore in sendto");
+      if (send_rel() < 0)
+        error("error in sendto");
     }
 
     fclose(file);
+
+    printf("Sending complete\n\n");
+    fflush(stdout);
+  
   }
 
   exit(0);
