@@ -12,19 +12,21 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <pthread.h>
+
 #include <time.h>
 
 #define SERV_PORT	   5193
 #define BACKLOG		   10
 #define MAXLINE		   2048
-#define FILENAME_PATH "files/input/"
+#define FILENAME_PATH "files/server/"
 
 // Functions
 void error(const char *msg);
 size_t fileSize(char *filename);
 char* filePath(char *fpath, char *fname);
 int recv_rel();
-int send_rel();
+void send_rel();
 void create_conn();
 
 // Variables
@@ -34,5 +36,6 @@ struct sockaddr_in addr;
 char buff[MAXLINE];
 FILE *file;
 size_t bytes_read;
+size_t size_file;
 
 #endif // SERVER_H
